@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generative AI Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @keyframes speak {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.3); }
+    }
+
+    .speaking-bar:nth-child(1) { animation: speak 0.5s infinite; }
+    .speaking-bar:nth-child(2) { animation: speak 0.5s infinite 0.1s; }
+    .speaking-bar:nth-child(3) { animation: speak 0.5s infinite 0.2s; }
+    .speaking-bar:nth-child(4) { animation: speak 0.5s infinite 0.3s; }
+    .speaking-bar:nth-child(5) { animation: speak 0.5s infinite 0.4s; }
+
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #9966ff;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-900">
+  <header class="text-gray-400 bg-gray-900 body-font">
+    <div class="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
+      <a class="flex title-font font-medium items-center text-white mb-4 md:mb-0">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-10 h-10 text-white p-2 bg-purple-500 rounded-full" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span class="ml-3 text-xl">Trishul AI</span>
+      </a>
+      <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
+        <a class="mr-5 hover:text-white">Home</a>
+        <a class="mr-5 hover:text-white">About Us</a>
+        <a class="mr-5 hover:text-white">Contact Us</a>
+        
+      </nav>
+    </div>
+  </header>
+
+
+
+  
+  <section class="flex items-center justify-center  p-2">
+  <div class="flex flex-col h-full w-full max-w-4xl bg-gray-600 shadow-lg rounded-lg overflow-hidden">
+    <div id="chatContainer" class="flex flex-col flex-1 p-6 overflow-auto space-y-4">
+      <div id="responseContainer"></div>
+      <div id="loadingSpinner" class="hidden">
+        <div class="loading-spinner mx-auto"></div>
+      </div>
+      <div id="speakingAnimation" class="mt-6 flex space-x-2 hidden justify-center">
+        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+      </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <div class="p-4 bg-gray-900 fixed bottom-0 w-full max-w-4xl">
+      <div class="flex">
+        <input id="questionInput" type="text" class="flex-grow px-4 py-2 border rounded-l-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="Type your question here" required aria-label="Type your question here" />
+        <button id="generateBtn" class="px-4 py-2 font-bold text-white bg-purple-500 rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" type="submit" aria-label="Ask Question">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+    </section>
+
+
+    
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+  </script>
+  <script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
+
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      const userQuestion = document.getElementById('questionInput').value;
+      const speakingAnimation = document.getElementById('speakingAnimation');
+      const responseContainer = document.getElementById('responseContainer');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+
+      if (!userQuestion.trim()) {
+        alert('Please enter a question.');
+        return;
+      }
+
+      const genAI = new GoogleGenerativeAI('AIzaSyASbqb2-XhVlfD233l8MuIelV_tFX4q4QE');
+
+      try {
+        loadingSpinner.classList.remove('hidden');
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = userQuestion;
+
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+
+        if (!response) {
+          throw new Error("No response generated.");
+        }
+
+        let text = await response.text();
+
+        if (!text) {
+          throw new Error("Generated text is empty.");
+        }
+
+        text = text.replace(/\*/g, '');
+
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = "bg-blue-100 text-blue-800 p-4 rounded-lg mb-2 self-end";
+        userMessageDiv.textContent = userQuestion;
+        responseContainer.appendChild(userMessageDiv);
+
+        const botMessageDiv = document.createElement('div');
+        botMessageDiv.className = "bg-gray-400 text-gray-800 p-4 rounded-lg mb-2 self-start shadow-md";
+        botMessageDiv.textContent = text;
+        responseContainer.appendChild(botMessageDiv);
+
+        loadingSpinner.classList.add('hidden');
+        document.getElementById('questionInput').value = '';
+
+        // Stop any ongoing speech synthesis
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onstart = () => {
+          speakingAnimation.classList.remove('hidden');
+        };
+        utterance.onend = () => {
+          speakingAnimation.classList.add('hidden');
+        };
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.error("Error generating or speaking the content:", error);
+        loadingSpinner.classList.add('hidden');
+        alert("An error occurred: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
