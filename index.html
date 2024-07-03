@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trishul AI</title>
+  <title>Generative AI Chat</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="Trishul.png">
   <style>
     @keyframes speak {
       0%, 100% { transform: scaleY(1); }
@@ -41,47 +40,39 @@
         <span class="ml-3 text-xl">Trishul AI</span>
       </a>
       <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
-        <a href="/TrishulAI" class="mr-5 hover:text-white">Home</a>
-        <a href="/TrishulAI/about.html" class="mr-5 hover:text-white">About Us</a>
-        <a href="/TrishulAI/contact.html" class="mr-5 hover:text-white">Contact Us</a>
+      <a href="/TrishulAI" class="mr-5 hover:text-white">Home</a>
+      <a href="/TrishulAI/about.html" class="mr-5 hover:text-white">About Us</a>
+      <a href="/TrishulAI/contact.html" class="mr-5 hover:text-white">Contact Us</a>
       </nav>
     </div>
   </header>
-
-
-
   
-  <section class="flex items-center justify-center  p-2">
-  <div class="flex flex-col h-full w-full max-w-4xl bg-gray-600 shadow-lg rounded-lg overflow-hidden">
-    <div id="chatContainer" class="flex flex-col flex-1 p-6 overflow-auto space-y-4">
-      <div id="responseContainer"></div>
-      <div id="loadingSpinner" class="hidden">
-        <div class="loading-spinner mx-auto"></div>
+  <section class="flex items-center justify-center p-2">
+    <div class="flex flex-col h-full w-full max-w-4xl bg-gray-600 shadow-lg rounded-lg overflow-hidden">
+      <div id="chatContainer" class="flex flex-col flex-1 p-6 overflow-auto space-y-4">
+        <div id="responseContainer"></div>
+        <div id="loadingSpinner" class="hidden">
+          <div class="loading-spinner mx-auto"></div>
+        </div>
+        <div id="speakingAnimation" class="mt-6 flex space-x-2 hidden justify-center">
+          <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+          <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+          <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+          <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+          <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
+        </div>
       </div>
-      <div id="speakingAnimation" class="mt-6 flex space-x-2 hidden justify-center">
-        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
-        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
-        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
-        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
-        <div class="speaking-bar w-4 h-8 bg-blue-500 rounded-md"></div>
-      </div>
-    </div>
-    <br>
-    <br>
-    <br>
-    <div class="p-4 bg-gray-900 fixed bottom-0 w-full max-w-4xl">
-      <div class="flex">
-        <input id="questionInput" type="text" class="flex-grow px-4 py-2 border rounded-l-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="Type your question here" required aria-label="Type your question here" />
-        <button id="generateBtn" class="px-4 py-2 font-bold text-white bg-purple-500 rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" type="submit" aria-label="Ask Question">
-          Send
-        </button>
+      <div class="p-4 bg-gray-900 fixed bottom-0 w-full max-w-4xl">
+        <div class="flex">
+          <input id="questionInput" type="text" class="flex-grow px-4 py-2 border rounded-l-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="Type your question here" required aria-label="Type your question here" />
+          <button id="generateBtn" class="px-4 py-2 font-bold text-white bg-purple-500 rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" type="submit" aria-label="Ask Question">
+            Send
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-    </section>
+  </section>
 
-
-    
   <script type="importmap">
     {
       "imports": {
@@ -92,13 +83,13 @@
   <script type="module">
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-      const userQuestion = document.getElementById('questionInput').value;
+    async function generateResponse() {
+      const userQuestion = document.getElementById('questionInput').value.trim();
       const speakingAnimation = document.getElementById('speakingAnimation');
       const responseContainer = document.getElementById('responseContainer');
       const loadingSpinner = document.getElementById('loadingSpinner');
 
-      if (!userQuestion.trim()) {
+      if (!userQuestion) {
         alert('Please enter a question.');
         return;
       }
@@ -125,16 +116,16 @@
           throw new Error("Generated text is empty.");
         }
 
-        text = text.replace(/\*/g, '');
+        text = text.replace(/\*/g, '').replace(/\n/g, '<br>');
 
         const userMessageDiv = document.createElement('div');
         userMessageDiv.className = "bg-blue-100 text-blue-800 p-4 rounded-lg mb-2 self-end";
-        userMessageDiv.textContent = userQuestion;
+        userMessageDiv.innerHTML = userQuestion;
         responseContainer.appendChild(userMessageDiv);
 
         const botMessageDiv = document.createElement('div');
         botMessageDiv.className = "bg-gray-400 text-gray-800 p-4 rounded-lg mb-2 self-start shadow-md";
-        botMessageDiv.textContent = text;
+        botMessageDiv.innerHTML = text;
         responseContainer.appendChild(botMessageDiv);
 
         loadingSpinner.classList.add('hidden');
@@ -143,7 +134,7 @@
         // Stop any ongoing speech synthesis
         window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(text.replace(/<br>/g, ''));
         utterance.onstart = () => {
           speakingAnimation.classList.remove('hidden');
         };
@@ -155,6 +146,14 @@
         console.error("Error generating or speaking the content:", error);
         loadingSpinner.classList.add('hidden');
         alert("An error occurred: " + error.message);
+      }
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', generateResponse);
+
+    document.getElementById('questionInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        generateResponse();
       }
     });
   </script>
